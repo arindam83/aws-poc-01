@@ -1,0 +1,9 @@
+region = "us-east-1"
+repo = "arindam83/aws-poc-01"
+github_secret_name = "github/token/arindam83-aws-poc-01"
+ami_id = "ami-0fa3fe0fa7920f68e"       # <-- replace with Amazon Linux 2 AMI in your region
+instance_type = "t3.small"
+asg_max = 2
+asg_name = "gh-runner-asg-arindam83-aws-poc-01"
+admin_ipv4 = ""   # optional e.g. "203.0.113.4/32" to allow SSH from your IP
+runner_version = "2.319.0"

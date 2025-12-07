@@ -1,0 +1,23 @@
+name: POC - Run on ephemeral EC2 runner
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: [self-hosted, ephemeral, arindam83-aws-poc-01]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Print runner and AWS identity
+        run: |
+          uname -a
+          echo "Runner labels: $RUNNER_LABELS"
+          aws sts get-caller-identity
+
+      - name: Simple test - create temp file
+        run: |
+          echo "POC run at $(date)" > poc-run.txt
+          ls -l poc-run.txt
