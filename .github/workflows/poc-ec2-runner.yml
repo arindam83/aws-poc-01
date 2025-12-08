@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: [self-hosted, ephemeral, arindam83-aws-poc-01]
+    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v4
