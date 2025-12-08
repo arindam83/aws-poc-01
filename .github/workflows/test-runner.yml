@@ -1,0 +1,14 @@
+name: Test Self-Hosted Runner
+on: 
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: [self-hosted, ephemeral, arindam83-aws-poc-01]
+    steps:
+      - name: Check runner
+        run: |
+          echo "Running on self-hosted runner!"
+          hostname
+          uname -a
+          whoami
