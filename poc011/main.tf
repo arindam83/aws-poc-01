@@ -1,6 +1,3 @@
-
-
-
 data "aws_availability_zones" "available" {}
 
 ########################
@@ -65,7 +62,6 @@ resource "aws_security_group" "runner_sg" {
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = var.admin_ipv4 != "" ? [var.admin_ipv4] : []
-    # if admin_ipv4 is empty no rule gets applied
   }
 
   tags = { Name = "poc-runner-sg" }
@@ -113,9 +109,18 @@ resource "aws_iam_policy" "runner_policy" {
       {
         Effect = "Allow",
         Action = [
-          "ssm:StartSession",
-          "ssm:SendCommand",
-          "ssm:DescribeInstanceInformation"
+          "ssm:UpdateInstanceInformation",
+          "ssmmessages:CreateControlChannel",
+          "ssmmessages:CreateDataChannel",
+          "ssmmessages:OpenControlChannel",
+          "ssmmessages:OpenDataChannel"
+        ],
+        Resource = "*"
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "s3:GetEncryptionConfiguration"
         ],
         Resource = "*"
       }
@@ -126,6 +131,12 @@ resource "aws_iam_policy" "runner_policy" {
 resource "aws_iam_role_policy_attachment" "runner_attach" {
   role       = aws_iam_role.runner_role.name
   policy_arn = aws_iam_policy.runner_policy.arn
+}
+
+# CRITICAL: Add SSM managed policy for Session Manager
+resource "aws_iam_role_policy_attachment" "ssm_managed" {
+  role       = aws_iam_role.runner_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_instance_profile" "runner_profile" {
@@ -162,7 +173,7 @@ resource "aws_launch_template" "runner_lt" {
     security_groups             = [aws_security_group.runner_sg.id]
   }
 
-user_data = base64encode(local.user_data)
+  user_data = base64encode(local.user_data)
 
   tag_specifications {
     resource_type = "instance"
@@ -177,7 +188,7 @@ resource "aws_autoscaling_group" "runner_asg" {
   name                      = var.asg_name
   max_size                  = var.asg_max
   min_size                  = 0
-  desired_capacity          = 0
+ desired_capacity          = var.asg_desired
   vpc_zone_identifier       = aws_subnet.public[*].id
   launch_template {
     id      = aws_launch_template.runner_lt.id
@@ -216,4 +227,8 @@ output "launch_template_id" {
 
 output "asg_name" {
   value = aws_autoscaling_group.runner_asg.name
+}
+
+output "runner_role_name" {
+  value = aws_iam_role.runner_role.name
 }
